@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas 2 RPL - Malvin Benny Christian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Plus Jakarta Sans',
+            themeVariables: {
+                fontSize: '15px',
+                actorFontSize: '15px',
+                messageFontSize: '13px',
+                primaryColor: '#0ea5e9',
+                primaryTextColor: '#f8fafc',
+                primaryBorderColor: '#38bdf8',
+                lineColor: '#94a3b8',
+                secondaryColor: '#10b981',
+                tertiaryColor: '#6366f1'
+            }
+        });
+    </script>
+    
+    <style>
+        /* BASE & BACKGROUND GRADIENTS */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #064e3b);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            color: #f8fafc;
+            transition: background 0.5s ease;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* CHAOS MODE (Simulasi Kegagalan NFR) */
+        @keyframes chaosFlash {
+            0% { background-color: #450a0a; }
+            50% { background-color: #7f1d1d; }
+            100% { background-color: #450a0a; }
+        }
+        body.chaos-active {
+            animation: chaosFlash 0.5s infinite !important;
+            background-image: none !important;
+        }
+
+        /* LAYOUT & SLIDES */
+        .slider-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide {
+            position: absolute;
+            opacity: 0;
+            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.9) translateY(40px);
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            width: 96%;
+            max-width: 1450px; 
+            height: 88vh;
+            padding: 25px 35px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        /* TEXT GRADIENTS & HEADINGS */
+        h1 {
+            background: linear-gradient(to right, #38bdf8, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 8px;
+        }
+
+        h1 i { color: #38bdf8; background: none; -webkit-background-clip: unset; }
+        h2 { background: linear-gradient(to right, #34d399, #10b981); -webkit-background-clip: text; color: transparent; font-size: 1.3rem; margin: 10px 0; font-style: normal; }
+        .subtitle { color: #94a3b8; font-size: 1rem; margin-top: -5px; margin-bottom: 12px; font-style: normal;}
+
+        /* GRIDS & BOXES */
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 5px; flex: 1; min-height: 0; }
+        .content-grid-large { display: flex; flex-direction: column; gap: 15px; margin-top: 5px; flex: 1; min-height: 0; }
+
+        .box {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+
+        /* SOAL BOX (Skenario) - DENGAN SCROLL & TINGGI TERBATAS */
+        .soal-box {
+            background: linear-gradient(to right, rgba(14, 165, 233, 0.1), rgba(14, 165, 233, 0.02));
+            border-left: 5px solid #0ea5e9;
+            border-radius: 4px 12px 12px 4px;
+            padding: 12px 18px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-height: 100px; /* Membatasi tinggi agar simulator lega */
+            overflow-y: auto;
+            flex: 0 0 auto;
+        }
+        
+        .soal-box::-webkit-scrollbar { width: 5px; }
+        .soal-box::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+
+        .danger-box {
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02));
+            border-left: 5px solid #ef4444;
+            border-radius: 4px 12px 12px 4px;
+        }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        ul li { margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; line-height: 1.5; font-style: normal; }
+        ul li i { color: #38bdf8; margin-top: 4px; font-size: 0.85rem; }
+
+        .split-layout { display: flex; gap: 20px; height: 100%; align-items: stretch; width: 100%; min-height: 0; }
+        .split-layout .left-panel { flex: 0 0 42%; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+        .split-layout .right-panel {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 17, 0.9));
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* DIAGRAM & ZOOM */
+        .diagram-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: rgba(2, 6, 17, 0.4);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: zoom-in;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .diagram-container.zoomed {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 6, 17, 0.98); z-index: 9999; padding: 30px;
+            cursor: zoom-out; border-radius: 0;
+        }
+        .zoom-hint {
+            position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7);
+            padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; color: #94a3b8;
+            pointer-events: none; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .diagram-container.zoomed .zoom-hint { display: none; }
+        .mermaid { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .mermaid svg { max-height: 100% !important; max-width: 100% !important; object-fit: contain; }
+
+        /* TABEL BAHASA MANUSIA (KAMUS) - DENGAN SCROLL */
+        .kamus-container {
+            flex: 0 0 auto;
+            max-height: 120px; /* FITUR BARU: Dibatasi agar tidak memakan tempat simulator */
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 0;
+        }
+        
+        .kamus-container::-webkit-scrollbar { width: 5px; }
+        .kamus-container::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 4px; }
+
+        .kamus-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        .kamus-table th, .kamus-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .kamus-table th { background: linear-gradient(to right, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); color: #38bdf8; font-weight: 800; position: sticky; top: 0; z-index: 2; }
+        .kamus-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .kamus-table td.istilah { font-weight: 600; color: #f8fafc; width: 35%; }
+        .kamus-table td.manusia { color: #a7f3d0; font-style: normal; } /* Teks normal, tidak miring */
+
+        /* SIMULATOR & BUTTON GRADIENTS - LEBIH LUAS */
+        .simulator-container {
+            background: linear-gradient(135deg, rgba(8, 14, 26, 0.95), rgba(15, 23, 42, 0.95));
+            border-radius: 12px; padding: 15px; border: 1px solid rgba(56, 189, 248, 0.3);
+            font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; 
+            flex: 1; /* Memberikan porsi sisa ruang secara maksimal */
+            min-height: 220px; 
+            overflow: hidden; /* Penting untuk mengunci scroll di dalam body simulator */
+        }
+
+        .sim-header { flex: 0 0 auto; color: #34d399; font-weight: 800; font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* WRAPPER SCROLL UNTUK AREA TOMBOL DAN LOG (AGAR JUDUL TETAP DIAM) */
+        .sim-body-scroll {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 5px;
+        }
+        .sim-body-scroll::-webkit-scrollbar { width: 6px; }
+        .sim-body-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sim-body-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .sim-body-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .sim-buttons { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; flex: 0 0 auto; }
+
+        .sim-btn {
+            border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+            font-size: 0.75rem; font-weight: 700; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative; overflow: hidden;
+        }
+        .sim-btn.primary { background: linear-gradient(135deg, #0284c7, #2563eb); }
+        .sim-btn.primary:hover:not(:disabled) { background: linear-gradient(135deg, #0369a1, #1d4ed8); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4); }
+        .sim-btn.success { background: linear-gradient(135deg, #059669, #10b981); }
+        .sim-btn.success:hover:not(:disabled) { background: linear-gradient(135deg, #047857, #059669); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); }
+        .sim-btn.danger { background: linear-gradient(135deg, #e11d48, #f43f5e); }
+        .sim-btn.danger:hover:not(:disabled) { background: linear-gradient(135deg, #be123c, #e11d48); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(244, 63, 94, 0.4); }
+        .sim-btn.neutral { background: linear-gradient(135deg, #475569, #64748b); }
+        .sim-btn.neutral:hover:not(:disabled) { background: linear-gradient(135deg, #334155, #475569); transform: translateY(-2px); }
+
+        .sim-btn:disabled { background: rgba(255, 255, 255, 0.05) !important; color: #475569 !important; cursor: not-allowed; box-shadow: none; border: 1px dashed #334155; transform: none !important; }
+
+        /* LOG TERMINAL - FITUR EXPAND ALAMI (SCROLL DIHANDLE OLEH .sim-body-scroll) */
+        .sim-log {
+            background: #020617; padding: 12px; border-radius: 8px; color: #a5b4fc; 
+            flex: none; min-height: 100px; height: max-content; overflow: visible;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; line-height: 1.6;
+            border: 1px solid rgba(255,255,255,0.05); scroll-behavior: smooth; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .log-accent { color: #34d399; font-weight: bold; }
+        .log-error { color: #f43f5e; font-weight: bold; }
+        .log-system { color: #38bdf8; font-weight: bold; }
+        .log-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); animation: fadeIn 0.3s ease; }
+        .log-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* NAVIGASI SLIDE */
+        .controls { position: fixed; bottom: 20px; display: flex; gap: 20px; align-items: center; z-index: 100; }
+        .nav-btn {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(37, 99, 235, 0.1));
+            color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 10px 24px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-weight: 600; backdrop-filter: blur(10px);
+        }
+        .nav-btn:hover { background: linear-gradient(135deg, #38bdf8, #2563eb); color: #fff; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); }
+        
+        .badge { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; display: inline-block; letter-spacing: 1px; box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3); }
+        .slide-counter { font-weight: bold; color: #94a3b8; font-size: 1.1rem; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; }
+
+        /* RESPONSIVE / MOBILE LAYOUT */
+        @media (max-width: 768px) {
+            .slide { padding: 15px; height: 95vh; overflow-y: auto; }
+            .content-grid { grid-template-columns: 1fr; }
+            .split-layout { flex-direction: column; height: auto; }
+            .split-layout .left-panel { flex: none; width: 100%; }
+            .split-layout .right-panel { min-height: 400px; margin-bottom: 60px; }
+            h1 { font-size: 1.4rem; }
+            .controls { bottom: 10px; }
+            .diagram-container { min-height: 300px; }
+        }
+
+        /* PRINT TO PDF */
+        @media print {
+            body { background: #020617 !important; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .slider-container { display: block; position: static; height: auto; width: 100%; }
+            .slide { position: relative; opacity: 1 !important; transform: none !important; pointer-events: auto; page-break-after: always; height: 100vh; width: 100%; max-width: none; box-shadow: none; border: none; margin: 0; padding: 15mm; background: #0f172a; }
+            .controls, .zoom-hint, .sim-buttons { display: none; } 
+            .box, .soal-box, .right-panel, .diagram-container { border: 1px solid #334155; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slider-container">
+        
+        <div class="slide active">
+            <div style="text-align: center; margin-top: 15vh;">
+                <i class="fas fa-layer-group" style="font-size: 5.5rem; color: #38bdf8; margin-bottom: 20px; text-shadow: 0 0 40px rgba(56, 189, 248, 0.4);"></i>
+                <h1 style="justify-content: center; border:none; font-size: 3.5rem; margin-bottom: 0;">Rekayasa Perangkat Lunak</h1>
+                <p style="font-size: 1.6rem; color: #94a3b8; margin-top: 5px; font-style: normal;">Analisis & Perancangan Sistem Marketplace Digital</p>
+                <div style="margin-top: 45px; background: rgba(255,255,255,0.03); padding: 25px 45px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); display: inline-block; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <p style="margin: 5px 0;"><i class="fas fa-user" style="color: #38bdf8;"></i> Malvin Benny Christian | <i class="fas fa-id-card" style="color: #34d399;"></i> 052839843</p>
+                    <p style="margin: 5px 0; color: #94a3b8;"><i class="fas fa-university"></i> UPBJJ Kota Semarang</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="badge">ANALISIS KEBUTUHAN</div>
+            <h1><i class="fas fa-tasks"></i> Kebutuhan Fungsional (FR)</h1>
+            <div class="soal-box">
+                <strong>Skenario Kasus (Soal 1):</strong> 1. Identifikasi minimal 5 kebutuhan fungsional yang harus dimiliki oleh sistem marketplace ini.
+            </div>
+            <div class="content-grid">
+                <div class="box">
+                    <h2><i class="fas fa-user-cog" style="color: #38bdf8;"></i> Manajemen User & Pesanan</h2>
+                    <ul>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-01 Registrasi Akun:</strong> Sistem harus mampu meregistrasi dan menyimpan data profil pelanggan baru ke database.</span></li>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-02 Katalog & Keranjang:</strong> Sistem harus menyediakan fungsi pemilihan barang multi-vendor dan penyimpanan draf belanja.</span></li>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-03 Pembuatan Pesanan:</strong> Menyimpan record pesanan ke dalam basis data transaksi utama secara terstruktur.</span></li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h2><i class="fas fa-cash-register" style="color: #34d399;"></i> Transaksi & Layanan Logistik</h2>
+                    <ul>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-04 Integrasi Gateway:</strong> Mekanisme tautan API pihak ketiga untuk otorisasi dan cek saldo bank secara real-time.</span></li>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-05 Resi & Notifikasi:</strong> Sistem otomatis mengirim pemberitahuan pesanan baru ke penjual serta update nomor tracking kurir ke pembeli.</span></li>
+                        <li><i class="fas fa-check-square"></i> <span><strong>FR-06 Resolusi & Ulasan:</strong> Fitur input rating produk dan pembuatan tiket keluhan/klaim refund kepada admin.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="badge">ANALISIS KEBUTUHAN</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 8px; margin-bottom: 8px;">
+                <h1 style="border: none; margin: 0; padding: 0;"><i class="fas fa-shield-alt"></i> Kebutuhan Non-Fungsional (NFR)</h1>
+                <button class="sim-btn danger" onclick="runChaosMode()" style="font-size: 0.75rem; padding: 6px 12px;"><i class="fas fa-radiation-alt"></i> Simulasikan Kegagalan</button>
+            </div>
+            <div class="soal-box">
+                <strong>Skenario Kasus (Soal 1):</strong> 2. Sebutkan minimal 3 kebutuhan non-fungsional yang penting untuk sistem ini.
+            </div>
+            <div class="content-grid">
+                <div class="box">
+                    <h2><i class="fas fa-fingerprint"></i> Atribut Kualitas Utama</h2>
+                    <ul>
+                        <li><i class="fas fa-lock"></i> <span><strong>Security (Keamanan Data):</strong> Menggunakan enkripsi SSL/TLS tingkat tinggi untuk melindungi lalu lintas data finansial sensitif pengguna agar terhindar dari peretasan.</span></li>
+                        <li><i class="fas fa-bolt"></i> <span><strong>Performance & Real-Time:</strong> Subsistem sinkronisasi ke payment gateway eksternal wajib merespons status dalam hitungan milidetik guna menghindari pemutusan session.</span></li>
+                        <li><i class="fas fa-server"></i> <span><strong>High Availability:</strong> Sistem database transaksi dirancang toleran terhadap kegagalan (fault-tolerant) dengan uptime target mencapai 99.9%.</span></li>
+                    </ul>
+                </div>
+                <div class="box danger-box" style="display: flex; flex-direction: column;">
+                    <h2 style="background: linear-gradient(to right, #ef4444, #f87171); -webkit-background-clip: text; color: transparent; margin-top: 0;"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> 3. Analisis dampak jika salah satu kebutuhan tersebut tidak terpenuhi</h2>
+                    <ul style="color: #fca5a5; font-size: 0.85rem; margin-bottom: 10px;">
+                        <li><i class="fas fa-times-circle" style="color: #ef4444;"></i> <span><strong>Pencurian Data (Security):</strong> Kebocoran token transaksi ke pihak tak bertanggung jawab (Cyberattack).</span></li>
+                        <li><i class="fas fa-times-circle" style="color: #ef4444;"></i> <span><strong>Kerugian Finansial:</strong> Transaksi palsu/manipulasi saldo karena otorisasi tak terenkripsi.</span></li>
+                        <li><i class="fas fa-times-circle" style="color: #ef4444;"></i> <span><strong>Migrasi Massal:</strong> Kehilangan trust pengguna, eksodus pelanggan ke kompetitor.</span></li>
+                        <li><i class="fas fa-times-circle" style="color: #ef4444;"></i> <span><strong>Tuntutan Hukum:</strong> Pelanggaran regulasi perlindungan data pribadi (UU PDP).</span></li>
+                        <li><i class="fas fa-times-circle" style="color: #ef4444;"></i> <span><strong>Kelumpuhan Server (Availability):</strong> Sistem timeout dan gagal memproses transaksi saat jam sibuk.</span></li>
+                    </ul>
+                    <div class="sim-log" id="nfr-log" style="min-height: 70px; flex: 0 0 auto; background: rgba(0,0,0,0.4); border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div class="log-item"><span class="log-system" style="color: #94a3b8;">[SYSTEM]</span> Server terpantau aman dan stabil...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="left-panel">
+                    <div class="badge">UML MODELING</div>
+                    <h1><i class="fas fa-users"></i> 1. Use Case Diagram</h1>
+                    
+                    <div class="soal-box">
+                        <strong>Skenario Kasus (Soal 2):</strong> 1. Diagram Use Case yang menggambarkan semua aktor dan interaksi dalam sistem.
+                    </div>
+
+                    <div class="box kamus-container">
+                        <table class="kamus-table">
+                            <tr><th style="width:30%">Istilah Teknis</th><th>Bahasa Sehari-hari</th></tr>
+                            <tr><td class="istilah">Aktor & Use Case</td><td class="manusia">"Siapa" yang makai aplikasi dan "Fasilitas" apa saja yang bisa mereka klik.</td></tr>
+                            <tr><td class="istilah">Sistem Eksternal</td><td class="manusia">Pihak luar (satpam bank) yang bantu validasi data dari luar sistem.</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Komponen Utama</td><td class="manusia">Actor (Pengguna), Use Case (Fungsi), Boundary (Batas Aplikasi).</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Fokus Analisis</td><td class="manusia">Memetakan hak akses dan fitur apa saja yang diberikan ke setiap user.</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="simulator-container">
+                        <div class="sim-header"><i class="fas fa-gamepad"></i> Simulasi Flow Fasilitas</div>
+                        <div class="sim-body-scroll">
+                            <div class="sim-buttons">
+                                <button class="sim-btn primary" onclick="runUC(1)" id="btn-uc-1">1. Bikin Akun</button>
+                                <button class="sim-btn primary" onclick="runUC(2)" id="btn-uc-2" disabled>2. Masukin Keranjang</button>
+                                <button class="sim-btn success" onclick="runUC(3)" id="btn-uc-3" disabled>3. Checkout (Bank)</button>
+                                <button class="sim-btn neutral" onclick="runUC(4)" id="btn-uc-4" disabled>4. Penjual Kirim</button>
+                                <button class="sim-btn danger" onclick="runUC(5)" id="btn-uc-5" disabled style="flex: 1 1 100%;">5. Admin Urus Refund</button>
+                                <button class="sim-btn" onclick="resetUC()" style="flex: 1 1 100%; background: transparent; border: 1px dashed #64748b;">🔄 Mulai Ulang Flow</button>
+                            </div>
+                            <div class="sim-log" id="uc-log">
+                                <div class="log-item"><span class="log-system">[SYSTEM]</span> Siap nyobain fasilitas aplikasi. Klik "Bikin Akun" dulu ya buat mulai...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="diagram-container" onclick="toggleZoom(this)">
+                        <div class="zoom-hint"><i class="fas fa-search-plus"></i> Klik untuk Perbesar</div>
+                        <div class="mermaid">
+                            flowchart LR
+                                classDef actor fill:transparent,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,font-size:14px
+                                classDef usecase fill:#1e293b,stroke:#34d399,stroke-width:2px,color:#f8fafc,border-radius:15px,font-size:13px
+                                
+                                Pelanggan((Pelanggan)):::actor
+                                Penjual((Penjual)):::actor
+                                Bank((Sistem Bank)):::actor
+                                Admin((Admin)):::actor
+
+                                subgraph "Marketplace Digital System"
+                                    UC1([Registrasi Akun]):::usecase
+                                    UC2([Pilih & Keranjang]):::usecase
+                                    UC3([Checkout & Bayar]):::usecase
+                                    UC4([Proses & Input Resi]):::usecase
+                                    UC5([Review Produk]):::usecase
+                                    UC6([Ajukan Refund]):::usecase
+                                    UC7([Kelola Refund]):::usecase
+                                end
+
+                                Pelanggan --> UC1
+                                Pelanggan --> UC2
+                                Pelanggan --> UC3
+                                Pelanggan --> UC5
+                                Pelanggan --> UC6
+                                Bank -.-> UC3
+                                Penjual --> UC4
+                                Penjual -.-> UC3
+                                Admin --> UC7
+                                UC6 -.-> UC7
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="left-panel">
+                    <div class="badge">UML MODELING</div>
+                    <h1><i class="fas fa-route"></i> 2. Activity Diagram</h1>
+                    
+                    <div class="soal-box">
+                        <strong>Skenario Kasus (Soal 2):</strong> 2. Diagram Aktivitas yang menunjukkan alur kerja utama dari pemesanan hingga pengiriman.
+                    </div>
+
+                    <div class="box kamus-container">
+                        <table class="kamus-table">
+                            <tr><th style="width:30%">Istilah Teknis</th><th>Bahasa Sehari-hari</th></tr>
+                            <tr><td class="istilah">Activity Flow</td><td class="manusia">Peta jalan/rute urutan kerja dari A sampai Z layaknya SOP melayani pesanan.</td></tr>
+                            <tr><td class="istilah">Decision Branch</td><td class="manusia">Persimpangan jalan. Saldo cukup lanjut, saldo kurang putar balik.</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Komponen Utama</td><td class="manusia">Initial Node (Start), Action (Langkah), Decision (Cabang Logika), Final Node.</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Fokus Analisis</td><td class="manusia">Menjamin tidak ada error logika ketika proses pembayaran sukses atau ditolak.</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="simulator-container">
+                        <div class="sim-header"><i class="fas fa-network-wired"></i> Rute Perjalanan Pesanan</div>
+                        <div class="sim-body-scroll">
+                            <div class="sim-buttons">
+                                <button class="sim-btn primary" onclick="runAct(1)" id="btn-act-1" style="flex: 1 1 100%;">1. Pilih Barang & Checkout</button>
+                                <button class="sim-btn neutral" onclick="runAct(2)" id="btn-act-2" disabled style="flex: 1 1 100%;">2. Masuk Gerbang Bank</button>
+                                <button class="sim-btn success" onclick="runAct(3)" id="btn-act-3" disabled>3. Saldo Cukup (Lanjut)</button>
+                                <button class="sim-btn danger" onclick="runAct(4)" id="btn-act-4" disabled>3. Saldo Kurang (Balik)</button>
+                                <button class="sim-btn" onclick="resetAct()" style="flex: 1 1 100%; background: transparent; border: 1px dashed #64748b;">🔄 Reset Rute</button>
+                            </div>
+                            <div class="sim-log" id="act-log">
+                                <div class="log-item"><span class="log-system">[SYSTEM]</span> Menunggu instruksi untuk mulai menyusuri rute pesanan...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="diagram-container" onclick="toggleZoom(this)">
+                        <div class="zoom-hint"><i class="fas fa-search-plus"></i> Klik untuk Perbesar</div>
+                        <div class="mermaid">
+                            stateDiagram-v2
+                                direction TB
+                                [*] --> Pilih_Produk
+                                Pilih_Produk --> Checkout
+                                Checkout --> Cek_Sistem_Bank
+                                state Branch_Pembayaran <<choice>>
+                                Cek_Sistem_Bank --> Branch_Pembayaran
+                                Branch_Pembayaran --> Status_Diproses : Valid
+                                Branch_Pembayaran --> Pilih_Metode_Pembayaran : Gagal
+                                Pilih_Metode_Pembayaran --> Cek_Sistem_Bank
+                                Status_Diproses --> Penjual_Kirim_Barang
+                                Penjual_Kirim_Barang --> Input_Resi
+                                Input_Resi --> [*]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="left-panel">
+                    <div class="badge">UML MODELING</div>
+                    <h1 style="border-bottom: none; padding-bottom: 0;"><i class="fas fa-exchange-alt"></i> 3. Sequence Diagram</h1>
+                    
+                    <div class="soal-box" style="margin-top: 10px;">
+                        <strong>Skenario Kasus (Soal 2):</strong> 3. Diagram Sequence untuk menjelaskan komunikasi antara pelanggan, marketplace, penjual, dan sistem perbankan saat transaksi berlangsung.
+                    </div>
+
+                    <div class="box kamus-container">
+                        <table class="kamus-table">
+                            <tr><th style="width:35%">Istilah Teknis</th><th>Bahasa Sehari-hari</th></tr>
+                            <tr><td class="istilah">API Back-and-Forth</td><td class="manusia">API itu ibarat kurir ojek online yang bolak-balik bawa data dari aplikasi kita ke Bank.</td></tr>
+                            <tr><td class="istilah">Response 200 / 403</td><td class="manusia">Jawaban: Lampu Hijau (Sukses) / Lampu Merah (Ditolak).</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Komponen Utama</td><td class="manusia">Lifeline (Garis Entitas), Message (Pesan Kurir), Activation Box.</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Fokus Analisis</td><td class="manusia">Urutan waktu (kronologi) pertukaran data antar entitas agar tidak salah panggil.</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div class="simulator-container">
+                        <div class="sim-header"><i class="fas fa-satellite-dish"></i> Tracker Komunikasi API</div>
+                        <div class="sim-body-scroll">
+                            <div class="sim-buttons">
+                                <button class="sim-btn primary" onclick="runSeq(1)" id="btn-seq-1" style="flex: 1 1 auto;">1. User Pencet Bayar</button>
+                                <button class="sim-btn neutral" onclick="runSeq(2)" id="btn-seq-2" disabled style="flex: 1 1 auto;">2. Kurir Bawa Request</button>
+                                <button class="sim-btn success" onclick="runSeq(3)" id="btn-seq-3" disabled style="flex: 1 1 auto;">3. Bank: "Oke, Tarik!"</button>
+                                <button class="sim-btn danger" onclick="runSeq(4)" id="btn-seq-4" disabled style="flex: 1 1 auto;">3. Bank: "Saldo Habis"</button>
+                                <button class="sim-btn primary" onclick="runSeq(5)" id="btn-seq-5" disabled style="flex: 1 1 100%;">4-5. Update Layar & Info Penjual</button>
+                                <button class="sim-btn" onclick="resetSeq()" style="flex: 1 1 100%; background: transparent; border: 1px dashed #64748b;">🔄 Reset Percakapan</button>
+                            </div>
+                            <div class="sim-log" id="seq-log">
+                                <div class="log-item"><span class="log-system">[SYSTEM]</span> API Tracker stand-by. Silakan mulai simulasikan obrolan antar sistem...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <div class="diagram-container" onclick="toggleZoom(this)">
+                        <div class="zoom-hint"><i class="fas fa-search-plus"></i> Klik untuk Perbesar</div>
+                        <div class="mermaid">
+                            sequenceDiagram
+                                autonumber
+                                actor P as Pelanggan
+                                participant M as Marketplace
+                                participant B as Bank
+                                actor S as Penjual
+
+                                P->>M: Checkout()
+                                M->>B: Request Otorisasi Dana()
+                                
+                                alt Dana Cukup
+                                    B-->>M: Otorisasi Berhasil (Token 200)
+                                    M-->>P: Update UI Status ("Diproses")
+                                    M->>S: Alert Pesanan Baru()
+                                else Gagal
+                                    B--xM: Otorisasi Ditolak (Error 403)
+                                end
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="badge">EVALUASI ARSITEKTUR</div>
+            <h1><i class="fas fa-balance-scale"></i> Perlukah Semua Diagram?</h1>
+            <div class="soal-box" style="max-height: none;">
+                <strong>Skenario Kasus (Soal 3.1):</strong> Tidak semua proyek perangkat lunak membutuhkan seluruh diagram UML. Menurut Anda, dalam proyek marketplace ini, apakah perlu menggunakan semua diagram yang telah Anda buat? Jelaskan alasannya!
+            </div>
+            <div class="content-grid-large">
+                <div class="box">
+                    <p style="font-size: 1.1rem; line-height: 1.6; margin-top: 0; font-style: normal;">
+                        <strong>Sangat Perlu (Wajib).</strong> Dalam konteks arsitektur marketplace yang melibatkan ekosistem eksternal multi-aktor (Payment gateway dan bank), penyusunan ketiga jenis diagram tersebut merupakan standar krusial untuk meminimalisir kesalahan interpretasi (miskomunikasi) antar tim pengembang:
+                    </p>
+                    <ul style="grid-template-columns: 1fr 1fr; display: grid; gap: 15px;">
+                        <li style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><i class="fas fa-map-marked-alt" style="font-size: 1.2rem;"></i> <span><strong>Use Case Diagram:</strong> Kompas ruang lingkup bisnis. Biar tim paham siapa saja yang pakai aplikasi (User, Admin, Bank) dan apa batasannya.</span></li>
+                        <li style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><i class="fas fa-project-diagram" style="font-size: 1.2rem;"></i> <span><strong>Activity Diagram:</strong> SOP operasional. Biar tim Frontend & QA tahu rute sukses/gagal saat uji coba, agar pelanggan tidak "nyangkut" saat bayar.</span></li>
+                        <li style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><i class="fas fa-network-wired" style="font-size: 1.2rem;"></i> <span><strong>Sequence Diagram:</strong> Penuntun teknis Backend. Memastikan urutan panggil API ("kurir pesan") ke Bank tepat, agar uang pelanggan tidak hangus karena error logika.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="left-panel">
+                    <div class="badge">EKSPANSI SISTEM</div>
+                    <h1><i class="fas fa-cogs"></i> Refund Otomatis</h1>
+                    <div class="soal-box">
+                        <strong>Skenario Kasus (Soal 3.2):</strong> Bagaimana jika sistem ini diperluas dengan fitur refund otomatis? Diagram tambahan apa yang mungkin diperlukan? Jelaskan fungsinya!
+                    </div>
+                    
+                    <div class="box kamus-container">
+                        <table class="kamus-table">
+                            <tr><th style="width:35%">Istilah Teknis</th><th>Bahasa Sehari-hari</th></tr>
+                            <tr><td class="istilah">State Machine / State</td><td class="manusia">Melacak perubahan status pesanan. Persis seperti resi kurir (Dikemas -> Dikirim -> Komplain -> Uang Kembali).</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Komponen Utama</td><td class="manusia">State (Status Saat Ini), Transition (Panah Perubahan), Trigger (Pemicu).</td></tr>
+                            <tr><td class="istilah" style="color:#6366f1;">Fokus Analisis</td><td class="manusia">Mengawasi daur hidup SATU objek saja (Pesanan) dari awal sampai tutup buku.</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="simulator-container">
+                        <div class="sim-header"><i class="fas fa-microchip"></i> Mesin Refund Otomatis</div>
+                        <div class="sim-body-scroll">
+                            <div class="sim-buttons">
+                                <button class="sim-btn primary" onclick="runState(1)" id="btn-st-1" style="flex: 1 1 100%;">1. Pembeli Lapor Rusak</button>
+                                <button class="sim-btn neutral" onclick="runState(2)" id="btn-st-2" disabled>2. Mesin Cek Syarat</button>
+                                <button class="sim-btn success" onclick="runState(3)" id="btn-st-3" disabled>3. Syarat Lolos (Approve)</button>
+                                <button class="sim-btn danger" onclick="runState(4)" id="btn-st-4" disabled>3. Syarat Gagal (Tolak)</button>
+                                <button class="sim-btn primary" onclick="runState(5)" id="btn-st-5" disabled style="flex: 1 1 100%;">4. Uang Dikirim Balik (Transfer)</button>
+                                <button class="sim-btn" onclick="resetState()" style="flex: 1 1 100%; background: transparent; border: 1px dashed #64748b;">🔄 Reset Mesin</button>
+                            </div>
+                            <div class="sim-log" id="state-log">
+                                <div class="log-item"><span class="log-system">[SYSTEM]</span> Mesin otomatis sedang tidur (idling)... Tunggu ada yang lapor komplain.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="diagram-container" onclick="toggleZoom(this)">
+                        <div class="zoom-hint"><i class="fas fa-search-plus"></i> Klik untuk Perbesar</div>
+                        <div class="mermaid">
+                            stateDiagram-v2
+                                direction LR
+                                [*] --> Pesanan_Selesai
+                                Pesanan_Selesai --> Refund_Requested : Komplain_Valid (Trigger)
+                                Refund_Requested --> Verifikasi_Otomatis : AI Mengecek
+                                Verifikasi_Otomatis --> Refund_Approved : Syarat_Lolos
+                                Verifikasi_Otomatis --> Refund_Rejected : Syarat_Gagal
+                                Refund_Approved --> Transfer_Bank : Tembak API
+                                Transfer_Bank --> Dana_Kembali
+                                Dana_Kembali --> [*]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="badge" style="margin-top: 10vh; margin-left: 10vw;">REFERENSI</div>
+            <h1 style="margin-left: 10vw; margin-right: 10vw;"><i class="fas fa-book"></i> Daftar Pustaka</h1>
+            <div class="content-grid-large" style="margin: 20px 10vw;">
+                <div class="box" style="padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <ul style="font-size: 1.2rem; line-height: 1.8;">
+                        <li style="margin-bottom: 25px; align-items: center;">
+                            <i class="fas fa-bookmark" style="font-size: 1.8rem; margin-top: 0; color:#34d399;"></i> 
+                            <div>
+                                <strong>Buku Materi Pokok (BMP) MSIM4303 - Rekayasa Perangkat Lunak.</strong><br>
+                                <span style="color: #94a3b8; font-size: 1rem; font-style: normal;">Universitas Terbuka. Tangerang Selatan. Modul referensi utama untuk pemodelan UML dan analisis kebutuhan perangkat lunak.</span>
+                            </div>
+                        </li>
+                        <li style="align-items: center;">
+                            <i class="fas fa-bookmark" style="font-size: 1.8rem; margin-top: 0; color:#38bdf8;"></i> 
+                            <div>
+                                <strong>Mermaid.js Official Documentation.</strong><br>
+                                <span style="color: #94a3b8; font-size: 1rem; font-style: normal;">Syntax guide for Flowchart, Sequence, and State diagrams rendering via JavaScript.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div style="text-align: center; margin-top: 25vh;">
+                <h1 style="border: none; justify-content: center; font-size: 4rem; margin-bottom: 5px; background: linear-gradient(to right, #38bdf8, #a78bfa); -webkit-background-clip: text; color: transparent;">Terima Kasih</h1>
+                <p class="subtitle" style="font-size: 1.4rem; font-style: normal;">"Software engineering is not just about coding, it's about solving problems systematically."</p>
+                <br>
+                <div class="badge" style="font-size: 1rem; padding: 8px 16px; background: linear-gradient(135deg, #10b981, #059669);">Solusi Tugas Terintegrasi Sukses</div>
+                <p style="font-size: 1.6rem; margin-top: 25px; font-weight:800; color:#f8fafc;">Malvin Benny Christian</p>
+                <p style="color: #cbd5e1; font-size: 1.2rem; font-style: normal;"><i class="fas fa-graduation-cap" style="color:#38bdf8;"></i> Universitas Terbuka | UPBJJ Kota Semarang</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="nav-btn" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+        <span class="slide-counter"><span id="current">1</span> / 10</span>
+        <button class="nav-btn" onclick="changeSlide(1)">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <script>
+        // SLIDER LOGIC
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('current');
+
+        function changeSlide(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= slides.length) currentSlide = slides.length - 1;
+            slides[currentSlide].classList.add('active');
+            counter.innerText = currentSlide + 1;
+            
+            // Matikan Chaos Mode jika pindah dari slide 3
+            if(currentSlide !== 2) {
+                document.body.classList.remove('chaos-active');
+            }
+        }
+
+        // ZOOM DIAGRAM LOGIC
+        function toggleZoom(elem) { elem.classList.toggle('zoomed'); }
+
+        // FUNGSI PRINT LOG UMUM (DENGAN SCROLL OTOMATIS)
+        function printLog(logId, message, type) {
+            const logContainer = document.getElementById(logId);
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            
+            let prefix = '';
+            if (type === 'success') prefix = '<span class="log-accent">[SUCCESS]</span>';
+            else if (type === 'error') prefix = '<span class="log-error">[ERROR]</span>';
+            else prefix = '<span class="log-system">[SYSTEM]</span>';
+            
+            logItem.innerHTML = `${prefix} ${message}`;
+            logContainer.appendChild(logItem);
+            
+            // Scroll wrapper dari si logContainer ke bawah
+            const scrollWrapper = logContainer.parentElement;
+            scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
+        }
+
+        // ==========================================
+        // SIMULATOR CHAOS MODE (Slide 3)
+        // ==========================================
+        function runChaosMode() {
+            document.body.classList.add('chaos-active');
+            const nfrLog = document.getElementById('nfr-log');
+            nfrLog.innerHTML = '';
+            
+            printLog('nfr-log', 'TERDETEKSI KEGAGALAN SISTEM KEAMANAN!', 'error');
+            setTimeout(() => printLog('nfr-log', '[CRITICAL] 401 Unauthorized: Token Transaksi Dibajak Hacker!', 'error'), 800);
+            setTimeout(() => printLog('nfr-log', '[FATAL] Database connection timeout karena lonjakan traffic palsu...', 'error'), 1800);
+            setTimeout(() => printLog('nfr-log', '[ALERT] Migrasi massal pengguna terdeteksi. Rating aplikasi menurun.', 'error'), 2800);
+            
+            // Reset setelah 6 detik
+            setTimeout(() => {
+                document.body.classList.remove('chaos-active');
+                printLog('nfr-log', '[SYSTEM] Recovery berhasil. Sistem kembali normal.', 'system');
+            }, 6000);
+        }
+
+        // ==========================================
+        // SIMULATOR 1: USE CASE (Slide 4)
+        // ==========================================
+        function runUC(step) {
+            if (step === 1) {
+                printLog('uc-log', 'Pelanggan: Wah aplikasinya bagus, daftar akun dulu ah biar data tersimpan!', 'success');
+                document.getElementById('btn-uc-1').disabled = true;
+                document.getElementById('btn-uc-2').disabled = false;
+            } else if (step === 2) {
+                printLog('uc-log', 'Pelanggan: Pilih-pilih barang, ketemu yang pas! Masukin keranjang.', 'system');
+                document.getElementById('btn-uc-2').disabled = true;
+                document.getElementById('btn-uc-3').disabled = false;
+            } else if (step === 3) {
+                printLog('uc-log', 'Pelanggan -> Bank: Saatnya bayar! Satpam Bank ngecek duitnya... "Oke aman, lunas!"', 'success');
+                document.getElementById('btn-uc-3').disabled = true;
+                document.getElementById('btn-uc-4').disabled = false;
+            } else if (step === 4) {
+                printLog('uc-log', 'Penjual: "Ada pesanan masuk! Siapin barang, tempel resi, kirim!"', 'system');
+                document.getElementById('btn-uc-4').disabled = true;
+                document.getElementById('btn-uc-5').disabled = false;
+            } else if (step === 5) {
+                printLog('uc-log', 'Admin: "Lho, kok barang pecah? Tenang, pembeli ajukan refund, biar saya yang kelola dan setujui komplainnya."', 'error');
+                document.getElementById('btn-uc-5').disabled = true;
+            }
+        }
+        function resetUC() {
+            document.getElementById('uc-log').innerHTML = '<div class="log-item"><span class="log-system">[SYSTEM]</span> Siap nyobain fasilitas aplikasi. Klik "Bikin Akun" dulu ya buat mulai...</div>';
+            document.getElementById('btn-uc-1').disabled = false;
+            [2,3,4,5].forEach(i => document.getElementById(`btn-uc-${i}`).disabled = true);
+        }
+
+        // ==========================================
+        // SIMULATOR 2: ACTIVITY (Slide 5)
+        // ==========================================
+        function runAct(step) {
+            if (step === 1) {
+                printLog('act-log', 'Pembeli mulai perjalanan: Milih produk -> masuk keranjang -> klik tombol Checkout.', 'system');
+                document.getElementById('btn-act-1').disabled = true;
+                document.getElementById('btn-act-2').disabled = false;
+            } else if (step === 2) {
+                printLog('act-log', 'Sistem: "Tolong masuk persimpangan gerbang bank, kita mau cek saldo nih."', 'system');
+                document.getElementById('btn-act-2').disabled = true;
+                document.getElementById('btn-act-3').disabled = false;
+                document.getElementById('btn-act-4').disabled = false;
+            } else if (step === 3) {
+                printLog('act-log', 'Bank: "Saldo Cukup!" -> Rute belok ke [Diproses] -> Penjual kemas barang -> Keluar Resi. Selesai!', 'success');
+                document.getElementById('btn-act-3').disabled = true;
+                document.getElementById('btn-act-4').disabled = true;
+            } else if (step === 4) {
+                printLog('act-log', 'Bank: "Waduh, saldo kurang!" -> Rute putar balik ke halaman [Pilih Metode Pembayaran]. Coba metode lain!', 'error');
+                document.getElementById('btn-act-3').disabled = true;
+                document.getElementById('btn-act-4').disabled = true;
+            }
+        }
+        function resetAct() {
+            document.getElementById('act-log').innerHTML = '<div class="log-item"><span class="log-system">[SYSTEM]</span> Menunggu instruksi untuk mulai menyusuri rute pesanan...</div>';
+            document.getElementById('btn-act-1').disabled = false;
+            [2,3,4].forEach(i => document.getElementById(`btn-act-${i}`).disabled = true);
+        }
+
+        // ==========================================
+        // SIMULATOR 3: SEQUENCE (Slide 6)
+        // ==========================================
+        function runSeq(step) {
+            if (step === 1) {
+                printLog('seq-log', 'Aplikasi (Pelanggan): "Saya klik Checkout( ) ya!"', 'system');
+                document.getElementById('btn-seq-1').disabled = true;
+                document.getElementById('btn-seq-2').disabled = false;
+            } else if (step === 2) {
+                printLog('seq-log', 'API (Kurir Pesan): Meluncur bawa data (Req Otorisasi) ketuk pintu server Bank...', 'system');
+                document.getElementById('btn-seq-2').disabled = true;
+                document.getElementById('btn-seq-3').disabled = false;
+                document.getElementById('btn-seq-4').disabled = false;
+            } else if (step === 3) {
+                printLog('seq-log', 'Server Bank: "Duit ada! Ini tiket lampu hijau (Token 200). Kasih balik ke aplikasi!"', 'success');
+                document.getElementById('btn-seq-3').disabled = true;
+                document.getElementById('btn-seq-4').disabled = true;
+                document.getElementById('btn-seq-5').disabled = false;
+            } else if (step === 4) {
+                printLog('seq-log', 'Server Bank: "Gagal! Duit kosong. Kasih tiket lampu merah (Error 403) ke aplikasi!"', 'error');
+                document.getElementById('btn-seq-3').disabled = true;
+                document.getElementById('btn-seq-4').disabled = true;
+            } else if (step === 5) {
+                printLog('seq-log', 'Aplikasi: Terima tiket hijau -> Layar HP diubah jadi "Diproses" -> Kirim WA alert ke Penjual.', 'success');
+                document.getElementById('btn-seq-5').disabled = true;
+            }
+        }
+        function resetSeq() {
+            document.getElementById('seq-log').innerHTML = '<div class="log-item"><span class="log-system">[SYSTEM]</span> API Tracker stand-by. Silakan mulai simulasikan obrolan antar sistem...</div>';
+            document.getElementById('btn-seq-1').disabled = false;
+            [2,3,4,5].forEach(i => document.getElementById(`btn-seq-${i}`).disabled = true);
+        }
+
+        // ==========================================
+        // SIMULATOR 4: STATE MACHINE (Slide 8)
+        // ==========================================
+        function runState(step) {
+            if (step === 1) {
+                printLog('state-log', 'Status: [Pesanan Selesai]. Tiba-tiba pembeli klik komplain! Status berubah jadi [Refund_Requested].', 'error');
+                document.getElementById('btn-st-1').disabled = true;
+                document.getElementById('btn-st-2').disabled = false;
+            } else if (step === 2) {
+                printLog('state-log', 'Status: [Verifikasi Otomatis]. Mesin AI sedang scan foto bukti barang rusak...', 'system');
+                document.getElementById('btn-st-2').disabled = true;
+                document.getElementById('btn-st-3').disabled = false;
+                document.getElementById('btn-st-4').disabled = false;
+            } else if (step === 3) {
+                printLog('state-log', 'AI: "Bukti Valid!" Status berubah jadi [Refund_Approved].', 'success');
+                document.getElementById('btn-st-3').disabled = true;
+                document.getElementById('btn-st-4').disabled = true;
+                document.getElementById('btn-st-5').disabled = false;
+            } else if (step === 4) {
+                printLog('state-log', 'AI: "Bukti Palsu!" Status berubah jadi [Refund_Rejected]. Proses berhenti.', 'error');
+                document.getElementById('btn-st-3').disabled = true;
+                document.getElementById('btn-st-4').disabled = true;
+            } else if (step === 5) {
+                printLog('state-log', 'Sistem: Menghubungi API Bank... Status -> [Dana Kembali]. Uang cair ke rekening pembeli!', 'success');
+                document.getElementById('btn-st-5').disabled = true;
+            }
+        }
+        function resetState() {
+            document.getElementById('state-log').innerHTML = '<div class="log-item"><span class="log-system">[SYSTEM]</span> Mesin otomatis sedang tidur (idling)... Tunggu ada yang lapor komplain.</div>';
+            document.getElementById('btn-st-1').disabled = false;
+            [2,3,4,5].forEach(i => document.getElementById(`btn-st-${i}`).disabled = true);
+        }
+
+        // KEYBOARD NAVIGATION
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') changeSlide(1);
+            else if (event.key === 'ArrowLeft') changeSlide(-1);
+        });
+    </script>
+</body>
+</html>
